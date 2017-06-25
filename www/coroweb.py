@@ -136,4 +136,42 @@ class RequestHandler(object):
             return r
         except APIError as e:
             return dict(error=e.error,data=e.data,message=e.message)
+            
+def add_static(app):
+    path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'static')
+    app.add_static('/static/',path)
+    logging('add static %s=>%s'%('/static/',path))
+
+def add_route(app,fn):
+    method=getattr(fn,'__method__',None)
+    path=getattr(fn,'__path__',None)
+    if path is None or method is None:
+        raise ValueError('@get or @post not defined in %s.'%str(fn))
+    if not asyncio.iscoroutinefunction(fn) and not inspect.isgeneratorfunction(fn):
+        fn=asyncio.coroutine(fn)
+        logging.info('add route %s %s =>%s(%s)'%(method,path,fn.__name__,','.join(inspect.signature(fn).parameters.keys())))
+        app.add_route(method,path,RequestHandler(app,fn))
+
+def add_routes(app,module_name):
+    n=module_name.rfind('.')
+    if n==-1:
+        mod=__import__(module_name, globals(), locals())
+        print(mod)
+    else:
+        name=module_name[n+1:]
+        mod=getattr(__import__(module_name[:n],globals(),locals(),[name]),name)
+    for attr in dir(mod):
+        if attr.startswith('_'):
+            continue
+        fn=getattr(mod,attr)
+        if callable(fn):
+            method=getattr(fn,__method__,None)
+            path=getattr(fn,__path__,None)
+            if method and path:
+                add_route(app,fn)
+
+      
+
+      
+
 
