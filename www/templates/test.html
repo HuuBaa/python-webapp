@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>test users</title>
+</head>
+<body>
+    <h1>All users</h1>
+    {%for u in users%}
+    <p>{{u.name}}/{{u.email}}/{{u.created_at}}</p>
+    {%endfor%}
+</body>
+</html>

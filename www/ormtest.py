@@ -4,7 +4,7 @@ from models import User, Blog, Comment
 loop=asyncio.get_event_loop()
 async def test():
     
-    u = User(name='ssxks', email='666@qq.com', passwd='0987654321', image='about:blank')
+    u = User(name='huf', email='111@qq.com', passwd='3242352453', image='about:blank')
     await u.save()
     # u=await User.find('1')
     # print(u)

@@ -7,6 +7,7 @@ import logging; logging.basicConfig(level=logging.INFO)
 import asyncio,os,json,time
 from datetime import datetime
 from aiohttp import web
+from jinja2 import Environment,FileSystemLoader
 
 import orm
 from coroweb import add_routes,add_static
@@ -29,7 +30,7 @@ def init_jinjia2(app,**kw):
     filters=kw.get('filters',None)
     if filters is not None:
         for name,f in filters.items():
-            env.filter[name]=f
+            env.filters[name]=f
     app['__templating__']=env
 
 def datetime_filter(t):
@@ -51,6 +52,18 @@ async def logger_factory(app,handler):
         return (await handler(request))
     return logger
 
+async def data_factory(app,handler):
+    async def parse_data(request):
+        if request.method=='POST':
+            if request.content_type.startswith('appliction/json'):
+                request.__data__=await request.json()
+                logging.info('request json:%s'%str(request.__data__))
+            elif request.content_type.startswith('appliction/x-www-form-urlencode'):
+                request.__data__=await request.post()
+                logging.info('request from:%s'%(request.__data__))
+        return (await handler(request))
+    return parse_data
+
 
 async def response_factory(app,handler):
     async def response(request):
@@ -71,7 +84,7 @@ async def response_factory(app,handler):
         if isinstance(r,dict):
             template=r.get('__template__')
             if template is None:
-                resp=web.Response(body=json.dumps(r,ensure_ascii=False,default=lambda o:0.__dict__).encode('utf-8'))
+                resp=web.Response(body=json.dumps(r,ensure_ascii=False,default=lambda o:o.__dict__).encode('utf-8'))
                 resp.content_type='appliction/json;charset=utf-8'
                 return resp
             else:
@@ -91,12 +104,12 @@ async def response_factory(app,handler):
 
 async def init(loop):
     await orm.create_pool(loop=loop,host='127.0.0.1',user='www-data',password='www-data',db='awesome')
-    app=web.Application(loop=loop,middleware=[logger_factory,response_factory])
+    app=web.Application(loop=loop,middlewares=[logger_factory,response_factory])
     init_jinjia2(app,filters=dict(datetime=datetime_filter))
     add_routes(app,'handlers')
     add_static(app)
-    srv= await loop.create_server(app.make_handler(),'127.0.0.1',9000)
-    logging.info('server started at http://127.0.0.1:9000')
+    srv= await loop.create_server(app.make_handler(),'127.0.0.1',9001)
+    logging.info('server started at http://127.0.0.1:9001')
     return srv
 
 loop = asyncio.get_event_loop()
