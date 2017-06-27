@@ -9,8 +9,13 @@ from models import User,Comment,Blog,next_id
 
 @get('/')
 async def index(request):
-    users=await User.findAll()
+    summary='sadasfsdgjh asdjasl asd jalij asd aiohjsda;iofh asdfh ;aioha '
+    blogs=[
+        Blog(id=1,name='TEST BLOGS',summary=summary,created_at=time.time()-120),
+        Blog(id=2,name='second BLOGS',summary=summary,created_at=time.time()-120),
+        Blog(id=3,name='last BLOGS',summary=summary,created_at=time.time()-120)
+    ]
     return{
-        '__template__':'test.html',
-        'users':users
+        '__template__':'blogs.html',
+        'blogs':blogs
     }
