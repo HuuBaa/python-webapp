@@ -55,10 +55,10 @@ async def logger_factory(app,handler):
 async def data_factory(app,handler):
     async def parse_data(request):
         if request.method=='POST':
-            if request.content_type.startswith('appliction/json'):
+            if request.content_type.startswith('application/json'):
                 request.__data__=await request.json()
                 logging.info('request json:%s'%str(request.__data__))
-            elif request.content_type.startswith('appliction/x-www-form-urlencode'):
+            elif request.content_type.startswith('application/x-www-form-urlencode'):
                 request.__data__=await request.post()
                 logging.info('request from:%s'%(request.__data__))
         return (await handler(request))
@@ -73,7 +73,7 @@ async def response_factory(app,handler):
             return r
         if isinstance(r,bytes):
             resp=web.Response(body=r)
-            resp.content_type='appliction/octet-stream'
+            resp.content_type='application/octet-stream'
             return resp
         if isinstance(r,str):
             if r.startswith('rdirect:'):
@@ -85,7 +85,7 @@ async def response_factory(app,handler):
             template=r.get('__template__')
             if template is None:
                 resp=web.Response(body=json.dumps(r,ensure_ascii=False,default=lambda o:o.__dict__).encode('utf-8'))
-                resp.content_type='appliction/json;charset=utf-8'
+                resp.content_type='application/json;charset=utf-8'
                 return resp
             else:
                 resp=web.Response(body=app['__templating__'].get_template(template).render(**r).encode('utf-8'))
@@ -108,8 +108,8 @@ async def init(loop):
     init_jinjia2(app,filters=dict(datetime=datetime_filter))
     add_routes(app,'handlers')
     add_static(app)
-    srv= await loop.create_server(app.make_handler(),'127.0.0.1',9003)
-    logging.info('server started at http://127.0.0.1:9003')
+    srv= await loop.create_server(app.make_handler(),'127.0.0.1',9005)
+    logging.info('server started at http://127.0.0.1:9005')
     return srv
 
 loop = asyncio.get_event_loop()
