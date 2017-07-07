@@ -196,7 +196,7 @@ async def api_comments(*,page='1'):
     p=Page(num,page_index)
     if num==0:
         return dict(page=p,comments=())
-    comments=await Blog.findAll(orderBy='created_at desc',limit=(p.offset,p.limit))
+    comments=await Comment.findAll(orderBy='created_at desc',limit=(p.offset,p.limit))
     return dict(page=p,comments=comments)
 
 #创建评论
@@ -207,7 +207,7 @@ async def api_create_comment(id,request,*,content):
         raise APIPermissionError('Please signin first')
     if not content or not content.strip():
         raise APIValueError('content')
-    blog=await Blog.find('id')
+    blog=await Blog.find(id)
     if blog is None:
         raise APIResourseNotFoundError('Blog')
     comment=Comment(blog_id=blog.id,user_id=user.id,user_name=user.name,user_image=user.image,content=content.strip())
@@ -313,11 +313,11 @@ async def api_update_blog(request,*,name,summary,content):
     blog.summary=summary.strip()
     blog.content=content.strip()
     await blog.update()
-    retrun blog
+    return blog
 
 #删除日志
 @post('/api/blogs/{id}/delete')
-async def api_delete_blog(id,request):
+async def api_delete_blog(request,*,id):
     check_admin(request)
     blog=await Blog.find(id)
     await blog.remove()

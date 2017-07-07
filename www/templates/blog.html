@@ -4,16 +4,18 @@
 
 {% block beforehead%}
 <script>
-    var comments_url='/api/blogs/{{blog.id}}/comments'
+    var comment_url='/api/blogs/{{blog.id}}/comments';
 
     $(function(){
-        $form=$('#form-comment');
+        var $form=$('#form-comment');
         $form.submit(function(e){
+            e.preventDefault();
+            $form.showFormError('');
             var content = $form.find('textarea').val().trim();
             if (content===''){
                 return $form.showFormError('请输入评论内容');
             }
-            $form.postJSON(comments_url,{content:content},function(){
+            $form.postJSON(comment_url,{content:content},function(err,r){
                 if(err){
                     return $form.showFormError(err)
                 }
