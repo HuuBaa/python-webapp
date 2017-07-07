@@ -91,22 +91,21 @@ class RequestHandler(object):
 
     async def __call__(self,request):
         kw=None
-
         if self._has_var_kw_args or self._has_named_kw_args or self._required_kw_args:
             if request.method=='POST':
                 if not request.content_type:
                     return web.HTTPBadRequest('Missing Content-Type')
                 ct=request.content_type.lower()
-                if ct.startswith('appliction/json'):
+                if ct.startswith('application/json'):
                     params=await request.json()
-                    if not isinstance(param,dict):
-                        return request.HTTPBadRequest('JSON must be object')
+                    if not isinstance(params,dict):
+                        return web.HTTPBadRequest('JSON must be object')
                     kw=params
-                elif ct.startswith('appliction/x-www-form-urlencode') or ct.startswith('multipart/form-data'):
-                    params=await request.post
+                elif ct.startswith('application/x-www-form-urlencode') or ct.startswith('multipart/form-data'):
+                    params=await request.post()
                     kw=dict(**params)
                 else:
-                    return HTTPBadRequest('unsupported Content-Type:%s'%request.content_type)
+                    return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
             if request.method=='GET':
                 qs=request.query_string
                 if qs:
@@ -118,9 +117,9 @@ class RequestHandler(object):
             kw=dict(**request.match_info)
         else:
 
-            if not _has_var_kw_args and _named_kw_args:
+            if not self._has_var_kw_args and self._named_kw_args:
                 copy=dict()
-                for name in _named_kw_args:
+                for name in self._named_kw_args:
                     if name in kw:
                         copy[name]=kw[name]
                 kw=copy
@@ -133,7 +132,7 @@ class RequestHandler(object):
         if self._has_request_arg:
             kw['request']=request
         if self._required_kw_args:
-            for name in _required_kw_args:
+            for name in self._required_kw_args:
                 if name not in kw:
                     return HTTPBadRequest('Missing argument:%s'%name)
         logging.info('call with arguments:%s'%str(kw))
@@ -175,7 +174,6 @@ def add_routes(app,module_name):
             if method and path:
                 add_route(app,fn)
 
-      
 
       
 

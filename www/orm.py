@@ -186,10 +186,11 @@ class Model(dict,metaclass=ModelMetaclass):
         if limit is not None:
             sql.append('limit')
             if isinstance(limit,int):
-                sql.append(limit)
+                sql.append('?')
+                args.extend(limit)
             if isinstance(limit,tuple) and len(limit)==2:
                 sql.append('?,?')
-                sql.extend(limit)
+                args.extend(limit)
             else:
                 raise ValueError('invalid limit value: %s'%str(limit))
         rs=await select(' '.join(sql),args)
